@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Probability Distribution Simulator & Dataset Predictor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .slider-thumb::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #3b82f6;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <div class="max-w-7xl mx-auto p-4 md:p-8">
+    
+    <!-- Header -->
+    <header class="mb-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">
+        <div>
+          <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+            📊 Distribution Simulator & Dataset Predictor
+          </h1>
+          <p class="text-slate-600 mt-1 text-sm md:text-base">
+            Simulate, plot, and <strong>predict distributions from custom datasets</strong> using built-in statistical models.
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="reSimulateBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5 text-sm">
+            <span>🔄 Re-simulate</span>
+          </button>
+          <button id="downloadCsvBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5 text-sm">
+            <span>📥 Export CSV</span>
+          </button>
+          <button id="downloadImgBtn" class="bg-slate-700 hover:bg-slate-800 text-white font-medium px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5 text-sm">
+            <span>🖼️ Export PNG</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex flex-wrap gap-2 mt-4" aria-label="Tabs">
+        <button data-tab="normal" class="tab-btn px-4 py-2.5 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow-sm">
+          🔵 Normal (Gaussian)
+        </button>
+        <button data-tab="binomial" class="tab-btn px-4 py-2.5 rounded-lg text-sm font-semibold transition text-slate-600 hover:bg-slate-200">
+          🟢 Binomial
+        </button>
+        <button data-tab="poisson" class="tab-btn px-4 py-2.5 rounded-lg text-sm font-semibold transition text-slate-600 hover:bg-slate-200">
+          🟣 Poisson
+        </button>
+        <button data-tab="compare" class="tab-btn px-4 py-2.5 rounded-lg text-sm font-semibold transition text-slate-600 hover:bg-slate-200">
+          📑 Compare All 3
+        </button>
+        <button data-tab="dataset" class="tab-btn px-4 py-2.5 rounded-lg text-sm font-semibold transition bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 flex items-center gap-1.5">
+          <span>📂 Predict from Dataset</span>
+          <span class="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase">New</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- ==================== VIEW 1 & 2: SINGLE / PARAMETER VIEW ==================== -->
+    <div id="singleView" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Controls Column (4 cols) -->
+      <aside class="lg:col-span-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-6">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">Parameters</h2>
+          
+          <!-- Sample Size Slider (Global) -->
+          <div class="mb-5">
+            <div class="flex justify-between items-center mb-1">
+              <label for="sampleSize" class="text-sm font-semibold text-slate-700">Sample Size (N):</label>
+              <span id="sampleSizeVal" class="text-xs font-mono font-bold bg-slate-100 px-2 py-0.5 rounded text-blue-700">5,000</span>
+            </div>
+            <input type="range" id="sampleSize" min="500" max="50000" step="500" value="5000" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+            <span class="text-[11px] text-slate-400">Controls the number of Monte-Carlo simulated observations</span>
+          </div>
+
+          <!-- Normal Distribution Controls -->
+          <div id="normalControls" class="space-y-4">
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label for="normMu" class="text-sm font-semibold text-slate-700">Mean (&mu;):</label>
+                <span id="normMuVal" class="text-xs font-mono font-bold bg-slate-100 px-2 py-0.5 rounded text-blue-700">0.0</span>
+              </div>
+              <input type="range" id="normMu" min="-20" max="20" step="0.5" value="0.0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label for="normSigma" class="text-sm font-semibold text-slate-700">Std Dev (&sigma;):</label>
+                <span id="normSigmaVal" class="text-xs font-mono font-bold bg-slate-100 px-2 py-0.5 rounded text-blue-700">2.0</span>
+              </div>
+              <input type="range" id="normSigma" min="0.2" max="10.0" step="0.1" value="2.0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label for="normBins" class="text-sm font-semibold text-slate-700">Histogram Bins:</label>
+                <span id="normBinsVal" class="text-xs font-mono font-bold bg-slate-100 px-2 py-0.5 rounded text-blue-700">40</span>
+              </div>
+              <input type="range" id="normBins" min="15" max="80" step="5" value="40" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 leading-relaxed">
+              <strong>Formula:</strong> \( f(x) = \frac{1}{\sigma\sqrt{2\pi}} e^{-\frac{(x-\mu)^2}{2\sigma^2}} \)
+            </div>
+          </div>
+
+          <!-- Binomial Controls -->
+          <div id="binomialControls" class="space-y-4 hidden">
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label for="binomN" class="text-sm font-semibold text-slate-700">Number of Trials (n):</label>
+                <span id="binomNVal" class="text-xs font-mono font-bold bg-slate-100 px-2 py-0.5 rounded text-emerald-700">25</span>
+              </div>
+              <input type="range" id="binomN" min="1" max="100" step="1" value="25" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label for="binomP" class="text-sm font-semibold text-slate-700">Success Probability (p):</label>
+                <span id="binomPVal" class="text-xs font-mono font-bold bg-slate-100 px-2 py-0.5 rounded text-emerald-700">0.50</span>
+              </div>
+              <input type="range" id="binomP" min="0.01" max="0.99" step="0.01" value="0.50" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 leading-relaxed">
+              <strong>Formula:</strong> \( P(X = k) = \binom{n}{k} p^k (1-p)^{n-k} \)
+            </div>
+          </div>
+
+          <!-- Poisson Controls -->
+          <div id="poissonControls" class="space-y-4 hidden">
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label for="poissLam" class="text-sm font-semibold text-slate-700">Rate Parameter (&lambda;):</label>
+                <span id="poissLamVal" class="text-xs font-mono font-bold bg-slate-100 px-2 py-0.5 rounded text-purple-700">5.0</span>
+              </div>
+              <input type="range" id="poissLam" min="0.5" max="30.0" step="0.5" value="5.0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <div class="p-3 bg-purple-50 border border-purple-200 rounded-xl text-xs text-purple-900 leading-relaxed">
+              <strong>Formula:</strong> \( P(X = k) = \frac{\lambda^k e^{-\lambda}}{k!} \)
+            </div>
+          </div>
+        </div>
+
+        <!-- Theoretical vs Sample Statistics Card -->
+        <div class="border-t border-slate-100 pt-4">
+          <h3 class="text-sm font-bold text-slate-800 mb-3 uppercase tracking-wider text-xs">Statistical Convergence</h3>
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+              <span class="text-slate-500 block">Theo Mean</span>
+              <span id="statTheoMean" class="font-mono font-bold text-slate-900 text-sm">--</span>
+            </div>
+            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+              <span class="text-slate-500 block">Sample Mean</span>
+              <span id="statEmpMean" class="font-mono font-bold text-blue-600 text-sm">--</span>
+            </div>
+            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+              <span class="text-slate-500 block">Theo Variance</span>
+              <span id="statTheoVar" class="font-mono font-bold text-slate-900 text-sm">--</span>
+            </div>
+            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+              <span class="text-slate-500 block">Sample Variance</span>
+              <span id="statEmpVar" class="font-mono font-bold text-blue-600 text-sm">--</span>
+            </div>
+            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+              <span class="text-slate-500 block">Empirical Std Dev</span>
+              <span id="statEmpStd" class="font-mono font-bold text-slate-800">--</span>
+            </div>
+            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+              <span class="text-slate-500 block">Skewness / Kurtosis</span>
+              <span id="statSkewKurt" class="font-mono font-bold text-slate-800 text-[11px]">--</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Visualization Column (8 cols) -->
+      <main class="lg:col-span-8 flex flex-col gap-4">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative">
+          <div class="flex items-center justify-between mb-3">
+            <h2 id="plotTitle" class="text-lg font-bold text-slate-900">Normal Distribution Simulation</h2>
+            <div class="flex items-center gap-3 text-xs">
+              <span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded bg-blue-500/70 inline-block border border-blue-600"></span> Empirical Sample</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-4 h-0.5 bg-red-500 inline-block"></span> Theoretical Density</span>
+            </div>
+          </div>
+
+          <!-- Canvas Container -->
+          <div class="relative w-full h-[460px] bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
+            <canvas id="mainCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+            <div id="tooltip" class="absolute pointer-events-none bg-slate-900/90 text-white text-xs px-2.5 py-1.5 rounded-md shadow-lg hidden z-10"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ==================== VIEW 3: MULTI-VIEW COMPARISON ==================== -->
+    <div id="compareView" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <h3 class="text-sm font-bold text-slate-800 mb-2">🔵 Normal Distribution</h3>
+        <p class="text-xs text-slate-500 mb-3">&mu; = 0, &sigma; = 1.0 (Standard Normal)</p>
+        <div class="h-[280px] bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
+          <canvas id="canvasCompareNorm" class="w-full h-full block"></canvas>
+        </div>
+      </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <h3 class="text-sm font-bold text-slate-800 mb-2">🟢 Binomial Distribution</h3>
+        <p class="text-xs text-slate-500 mb-3">n = 20, p = 0.50</p>
+        <div class="h-[280px] bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
+          <canvas id="canvasCompareBinom" class="w-full h-full block"></canvas>
+        </div>
+      </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <h3 class="text-sm font-bold text-slate-800 mb-2">🟣 Poisson Distribution</h3>
+        <p class="text-xs text-slate-500 mb-3">&lambda; = 4.0</p>
+        <div class="h-[280px] bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
+          <canvas id="canvasComparePoiss" class="w-full h-full block"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== VIEW 4: DATASET FIT & PREDICTION VIEW ==================== -->
+    <div id="datasetView" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Dataset Controls (4 cols) -->
+      <aside class="lg:col-span-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-5">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-3">
+            1. Load Dataset
+          </h2>
+
+          <!-- File upload & presets -->
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Upload CSV File:</label>
+              <input type="file" id="csvFileInput" accept=".csv,.txt" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-400">or load preset:</span>
+              <select id="presetSelect" class="text-xs bg-slate-50 border border-slate-200 rounded-lg p-1.5 font-medium text-slate-700 flex-1">
+                <option value="exam">Student Exam Scores (Normal)</option>
+                <option value="quiz">Quiz Successes / 20 (Binomial)</option>
+                <option value="web">Website Visitors / Min (Poisson)</option>
+              </select>
+            </div>
+
+            <!-- Column picker (if multiple columns exist) -->
+            <div id="colPickerContainer" class="hidden">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Select Analysis Column:</label>
+              <select id="colSelect" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-1.5 font-medium text-slate-700"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empirical Dataset Summary -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-1.5">
+          <div class="flex justify-between"><span class="text-slate-500">Sample Count (N):</span><strong id="dsCount" class="font-mono text-slate-800">100</strong></div>
+          <div class="flex justify-between"><span class="text-slate-500">Sample Mean (X̄):</span><strong id="dsMean" class="font-mono text-blue-600">--</strong></div>
+          <div class="flex justify-between"><span class="text-slate-500">Sample Variance (s²):</span><strong id="dsVar" class="font-mono text-blue-600">--</strong></div>
+          <div class="flex justify-between"><span class="text-slate-500">Std Deviation (s):</span><strong id="dsStd" class="font-mono text-slate-800">--</strong></div>
+          <div class="flex justify-between"><span class="text-slate-500">Range [Min, Max]:</span><strong id="dsRange" class="font-mono text-slate-800">--</strong></div>
+        </div>
+
+        <!-- Distribution Prediction & Fitting -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="text-base font-bold text-slate-900">2. Predict Distribution</h2>
+            <button id="autoPredictBtn" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-2.5 py-1 rounded-md font-semibold transition shadow-xs flex items-center gap-1">
+              <span>🤖 Auto-Predict</span>
+            </button>
+          </div>
+
+          <!-- Model selection tabs -->
+          <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-lg text-xs font-semibold mb-3" id="fitModelTabs">
+            <button data-fit="normal" class="fit-model-btn py-1.5 rounded-md bg-white text-blue-700 shadow-xs">Normal</button>
+            <button data-fit="binomial" class="fit-model-btn py-1.5 rounded-md text-slate-600 hover:text-slate-900">Binomial</button>
+            <button data-fit="poisson" class="fit-model-btn py-1.5 rounded-md text-slate-600 hover:text-slate-900">Poisson</button>
+          </div>
+
+          <!-- Prediction Insight Box -->
+          <div id="predictionInsight" class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 mb-3 leading-relaxed">
+            <span class="font-bold block mb-0.5" id="insightTitle">Predicted Best Fit: Normal</span>
+            <span id="insightText">Data exhibits a symmetric bell-shaped distribution with continuous values.</span>
+          </div>
+
+          <!-- Fitted Parameters Display -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1">
+            <div class="font-semibold text-slate-700 mb-1">Estimated Parameters:</div>
+            <div id="fittedParamsText" class="font-mono text-slate-800">
+              μ̂ = 74.5, σ̂ = 8.2
+            </div>
+            <div id="goodnessOfFitText" class="text-slate-500 text-[11px] pt-1 border-t border-slate-200">
+              Log-Likelihood: -320.1 | AIC: 644.2
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Make Predictions / Inference -->
+        <div>
+          <h2 class="text-base font-bold text-slate-900 border-b border-slate-100 pb-2 mb-3">
+            3. Query Probabilities
+          </h2>
+          <div class="space-y-2 text-xs">
+            <div class="flex items-center gap-2">
+              <label for="predictInputX" class="font-semibold text-slate-700">Predict for value X =</label>
+              <input type="number" id="predictInputX" value="75" step="any" class="w-20 px-2 py-1 bg-slate-50 border border-slate-300 rounded font-mono font-bold text-blue-700">
+            </div>
+            
+            <div class="bg-blue-50/70 p-2.5 rounded-xl border border-blue-200 space-y-1">
+              <div class="flex justify-between">
+                <span class="text-blue-900">Density / P(X = x):</span>
+                <strong id="predPointProb" class="font-mono text-blue-700">--</strong>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-blue-900">Cumulative P(X ≤ x):</span>
+                <strong id="predCumulProb" class="font-mono text-blue-700">--</strong>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-blue-900">Survival P(X > x):</span>
+                <strong id="predSurvProb" class="font-mono text-blue-700">--</strong>
+              </div>
+            </div>
+
+            <!-- Toggle Re-simulation overlay -->
+            <div class="flex items-center justify-between pt-2">
+              <label class="text-xs font-semibold text-slate-700 cursor-pointer flex items-center gap-1.5">
+                <input type="checkbox" id="toggleResimOverlay" class="rounded text-blue-600 cursor-pointer">
+                <span>Overlay Re-simulated Sample</span>
+              </label>
+              <span class="text-[10px] text-slate-400">Monte Carlo</span>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- Dataset Graph Panel (8 cols) -->
+      <main class="lg:col-span-8 flex flex-col gap-4">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
+            <div>
+              <h2 id="dsPlotTitle" class="text-lg font-bold text-slate-900">Dataset Distribution vs. Predicted Model</h2>
+              <p id="dsPlotSubtitle" class="text-xs text-slate-500">Empirical histogram with fitted theoretical curve</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 text-xs">
+              <span class="inline-flex items-center gap-1"><span class="w-3.5 h-3.5 rounded bg-blue-500/70 inline-block border border-blue-600"></span> Actual Dataset</span>
+              <span class="inline-flex items-center gap-1"><span class="w-4 h-0.5 bg-red-500 inline-block"></span> Predicted Model</span>
+              <span class="inline-flex items-center gap-1" id="legendResim"><span class="w-3 h-3 rounded bg-amber-400/80 inline-block"></span> Re-simulated</span>
+              <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block"></span> Query Point</span>
+            </div>
+          </div>
+
+          <!-- Canvas Container -->
+          <div class="relative w-full h-[460px] bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
+            <canvas id="dsCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+            <div id="dsTooltip" class="absolute pointer-events-none bg-slate-900/90 text-white text-xs px-2.5 py-1.5 rounded-md shadow-lg hidden z-10"></div>
+          </div>
+        </div>
+
+        <!-- Data Preview Expander -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-xs">
+          <div class="flex items-center justify-between cursor-pointer" id="toggleDataPreview">
+            <span class="font-bold text-slate-800">📄 Raw Dataset Values Preview (First 20 items)</span>
+            <span id="previewToggleIcon" class="text-slate-400 font-mono">▼</span>
+          </div>
+          <div id="dataPreviewContent" class="mt-2.5 overflow-x-auto hidden">
+            <div id="dataPills" class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1"></div>
+          </div>
+        </div>
+      </main>
+
+    </div>
+
+    <!-- Math & Educational Summary -->
+    <footer class="mt-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <h3 class="text-base font-bold text-slate-900 mb-3">Mathematical Reference & Prediction Methodology</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-slate-600">
+        <div class="border-l-2 border-blue-500 pl-3">
+          <strong class="text-slate-800 block mb-1">Normal Prediction (Continuous)</strong>
+          Fitted using sample mean \(\hat{\mu} = \bar{X}\) and standard deviation \(\hat{\sigma} = s\). Predicts continuous probabilities via the Gaussian PDF and error function \(\text{erf}\).
+        </div>
+        <div class="border-l-2 border-emerald-500 pl-3">
+          <strong class="text-slate-800 block mb-1">Binomial Prediction (Discrete Trials)</strong>
+          Fitted by estimating the success rate \(\hat{p} = \bar{X} / n\) given trials \(n\). Predicts exact outcome probabilities \(P(X = k) = \binom{n}{k} p^k (1-p)^{n-k}\).
+        </div>
+        <div class="border-l-2 border-purple-500 pl-3">
+          <strong class="text-slate-800 block mb-1">Poisson Prediction (Count Rate)</strong>
+          Fitted by estimating rate \(\hat{\lambda} = \bar{X}\). Ideal when variance is close to the mean (\(s^2 \approx \bar{X}\)). Predicts event frequency \(P(X = k) = \frac{\lambda^k e^{-\lambda}}{k!}\).
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    // --- Global State ---
+    let currentTab = 'normal';
+    let currentSamples = [];
+    let currentBins = [];
+
+    // Dataset State
+    let activeDataset = [];
+    let activeDatasetName = "exam";
+    let activeFitModel = "normal";
+    let activeFitParams = {};
+    let activeResimData = null;
+    let datasetBins = [];
+
+    // Built-in Datasets
+    const PRESETS = {
+      exam: [
+        74.2, 68.5, 81.1, 62.9, 79.4, 85.3, 70.2, 58.1, 76.8, 83.4, 71.9, 92.1, 65.4, 77.5, 80.2, 63.7, 74.9, 88.2, 69.1, 73.5,
+        84.0, 78.3, 66.8, 72.4, 81.9, 59.5, 75.6, 86.7, 67.3, 73.1, 79.8, 82.5, 64.2, 77.9, 89.4, 71.0, 68.0, 83.8, 75.2, 61.4,
+        80.6, 87.1, 72.8, 74.4, 65.9, 85.0, 70.7, 78.9, 82.1, 67.8, 76.2, 73.8, 84.5, 69.7, 81.4, 62.1, 77.1, 88.9, 72.0, 75.0,
+        83.2, 66.3, 79.1, 71.5, 85.8, 64.8, 78.6, 80.9, 68.7, 74.0, 87.5, 70.4, 76.5, 82.8, 63.1, 79.5, 72.6, 84.1, 67.0, 77.3,
+        86.2, 71.3, 75.8, 81.7, 65.1, 88.0, 69.4, 73.3, 83.5, 61.8, 80.0, 78.1, 72.2, 85.4, 66.6, 76.9, 82.3, 68.2, 74.6, 89.1
+      ],
+      quiz: [
+        13, 12, 14, 9, 11, 15, 12, 8, 13, 14, 11, 16, 10, 13, 14, 10, 12, 15, 11, 13,
+        14, 13, 10, 12, 14, 8, 13, 15, 11, 12, 14, 13, 9, 13, 16, 12, 11, 14, 13, 9,
+        14, 15, 12, 13, 10, 15, 11, 14, 13, 10, 13, 12, 15, 11, 14, 9, 13, 16, 12, 13,
+        14, 10, 13, 12, 15, 9, 13, 14, 11, 12, 15, 11, 13, 14, 9, 13, 12, 14, 10, 13,
+        15, 12, 13, 14, 10, 16, 11, 12, 14, 9, 13, 13, 12, 15, 10, 13, 14, 11, 12, 16
+      ],
+      web: [
+        6, 7, 5, 8, 6, 4, 7, 9, 5, 6, 7, 3, 8, 6, 7, 5, 6, 4, 8, 6,
+        5, 7, 9, 6, 4, 7, 6, 5, 8, 6, 5, 7, 6, 5, 4, 8, 7, 6, 5, 9,
+        6, 4, 7, 6, 8, 5, 7, 6, 5, 8, 6, 7, 4, 8, 6, 7, 5, 4, 6, 7,
+        5, 8, 6, 7, 5, 8, 6, 5, 7, 6, 4, 8, 6, 5, 7, 6, 8, 5, 7, 6,
+        4, 7, 6, 5, 8, 4, 7, 6, 5, 8, 6, 7, 6, 4, 8, 6, 5, 7, 6, 4
+      ]
+    };
+
+    // --- DOM Elements ---
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const singleView = document.getElementById('singleView');
+    const compareView = document.getElementById('compareView');
+    const datasetView = document.getElementById('datasetView');
+    const normalControls = document.getElementById('normalControls');
+    const binomialControls = document.getElementById('binomialControls');
+    const poissonControls = document.getElementById('poissonControls');
+    const plotTitle = document.getElementById('plotTitle');
+
+    // Inputs
+    const sampleSizeInput = document.getElementById('sampleSize');
+    const sampleSizeVal = document.getElementById('sampleSizeVal');
+    const normMuInput = document.getElementById('normMu');
+    const normMuVal = document.getElementById('normMuVal');
+    const normSigmaInput = document.getElementById('normSigma');
+    const normSigmaVal = document.getElementById('normSigmaVal');
+    const normBinsInput = document.getElementById('normBins');
+    const normBinsVal = document.getElementById('normBinsVal');
+    const binomNInput = document.getElementById('binomN');
+    const binomNVal = document.getElementById('binomNVal');
+    const binomPInput = document.getElementById('binomP');
+    const binomPVal = document.getElementById('binomPVal');
+    const poissLamInput = document.getElementById('poissLam');
+    const poissLamVal = document.getElementById('poissLamVal');
+
+    // Dataset View Elements
+    const csvFileInput = document.getElementById('csvFileInput');
+    const presetSelect = document.getElementById('presetSelect');
+    const colPickerContainer = document.getElementById('colPickerContainer');
+    const colSelect = document.getElementById('colSelect');
+    const dsCount = document.getElementById('dsCount');
+    const dsMean = document.getElementById('dsMean');
+    const dsVar = document.getElementById('dsVar');
+    const dsStd = document.getElementById('dsStd');
+    const dsRange = document.getElementById('dsRange');
+    const autoPredictBtn = document.getElementById('autoPredictBtn');
+    const fitModelBtns = document.querySelectorAll('.fit-model-btn');
+    const predictionInsight = document.getElementById('predictionInsight');
+    const insightTitle = document.getElementById('insightTitle');
+    const insightText = document.getElementById('insightText');
+    const fittedParamsText = document.getElementById('fittedParamsText');
+    const goodnessOfFitText = document.getElementById('goodnessOfFitText');
+    const predictInputX = document.getElementById('predictInputX');
+    const predPointProb = document.getElementById('predPointProb');
+    const predCumulProb = document.getElementById('predCumulProb');
+    const predSurvProb = document.getElementById('predSurvProb');
+    const toggleResimOverlay = document.getElementById('toggleResimOverlay');
+    const dsPlotTitle = document.getElementById('dsPlotTitle');
+    const dsCanvas = document.getElementById('dsCanvas');
+    const dsTooltip = document.getElementById('dsTooltip');
+    const toggleDataPreview = document.getElementById('toggleDataPreview');
+    const dataPreviewContent = document.getElementById('dataPreviewContent');
+    const dataPills = document.getElementById('dataPills');
+    const previewToggleIcon = document.getElementById('previewToggleIcon');
+
+    // Canvas Main
+    const canvas = document.getElementById('mainCanvas');
+    const tooltip = document.getElementById('tooltip');
+
+    // --- Math & Built-in Simulation Generators ---
+    function sampleNormal(mu, sigma) {
+      let u1 = Math.random(), u2 = Math.random();
+      while (u1 === 0) u1 = Math.random();
+      return mu + Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2) * sigma;
+    }
+
+    function sampleBinomial(n, p) {
+      let successes = 0;
+      for (let i = 0; i < n; i++) if (Math.random() < p) successes++;
+      return successes;
+    }
+
+    function samplePoisson(lambda) {
+      const L = Math.exp(-lambda);
+      let k = 0, p = 1.0;
+      do { k++; p *= Math.random(); } while (p > L);
+      return k - 1;
+    }
+
+    function logFactorial(n) {
+      let res = 0;
+      for (let i = 2; i <= n; i++) res += Math.log(i);
+      return res;
+    }
+
+    function normalPDF(x, mu, sigma) {
+      return (1.0 / (sigma * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mu) / sigma, 2));
+    }
+
+    // Cumulative Normal distribution approximation via error function
+    function erf(x) {
+      const a1 =  0.254829592, a2 = -0.284496736, a3 =  1.421413741;
+      const a4 = -1.453152027, a5 =  1.061405429, p  =  0.3275911;
+      const sign = x < 0 ? -1 : 1;
+      x = Math.abs(x);
+      const t = 1.0 / (1.0 + p * x);
+      const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+      return sign * y;
+    }
+
+    function normalCDF(x, mu, sigma) {
+      return 0.5 * (1 + erf((x - mu) / (sigma * Math.sqrt(2))));
+    }
+
+    function binomialPMF(k, n, p) {
+      if (k < 0 || k > n) return 0;
+      const logComb = logFactorial(n) - logFactorial(k) - logFactorial(n - k);
+      return Math.exp(logComb + k * Math.log(p) + (n - k) * Math.log(1 - p));
+    }
+
+    function poissonPMF(k, lambda) {
+      if (k < 0) return 0;
+      return Math.exp(k * Math.log(lambda) - lambda - logFactorial(k));
+    }
+
+    function calcStats(data) {
+      const n = data.length;
+      if (n === 0) return { mean: 0, variance: 0, std: 0, skew: 0, kurt: 0, min: 0, max: 0 };
+      const mean = data.reduce((a, b) => a + b, 0) / n;
+      let varSum = 0, m3Sum = 0, m4Sum = 0;
+      let min = data[0], max = data[0];
+      for (let i = 0; i < n; i++) {
+        const v = data[i];
+        if (v < min) min = v;
+        if (v > max) max = v;
+        const diff = v - mean;
+        varSum += diff * diff;
+        m3Sum += diff * diff * diff;
+        m4Sum += diff * diff * diff * diff;
+      }
+      const variance = n > 1 ? varSum / (n - 1) : 0;
+      const std = Math.sqrt(variance);
+      const skew = std === 0 ? 0 : (m3Sum / n) / Math.pow(std, 3);
+      const kurt = std === 0 ? 0 : ((m4Sum / n) / Math.pow(std, 4)) - 3;
+      return { mean, variance, std, skew, kurt, min, max, count: n };
+    }
+
+    function setupCanvas(c) {
+      const rect = c.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      c.width = rect.width * dpr;
+      c.height = rect.height * dpr;
+      const context = c.getContext('2d');
+      context.scale(dpr, dpr);
+      return { width: rect.width, height: rect.height, context };
+    }
+
+    // ==================== SIMULATION MODES ====================
+    function runSimulation() {
+      const N = parseInt(sampleSizeInput.value, 10);
+      sampleSizeVal.innerText = N.toLocaleString();
+
+      if (currentTab === 'normal') {
+        const mu = parseFloat(normMuInput.value);
+        const sigma = parseFloat(normSigmaInput.value);
+        const numBins = parseInt(normBinsInput.value, 10);
+        normMuVal.innerText = mu.toFixed(1);
+        normSigmaVal.innerText = sigma.toFixed(1);
+        normBinsVal.innerText = numBins;
+
+        plotTitle.innerText = `Normal Distribution Simulation (μ = ${mu}, σ = ${sigma}, N = ${N.toLocaleString()})`;
+
+        const data = new Float64Array(N);
+        for (let i = 0; i < N; i++) data[i] = sampleNormal(mu, sigma);
+        currentSamples = data;
+
+        const s = calcStats(data);
+        updateStatsDisplay(mu, s.mean, sigma * sigma, s.variance, s.std, s.skew, s.kurt);
+        renderNormalPlot(canvas, data, mu, sigma, numBins);
+
+      } else if (currentTab === 'binomial') {
+        const n = parseInt(binomNInput.value, 10);
+        const p = parseFloat(binomPInput.value);
+        binomNVal.innerText = n;
+        binomPVal.innerText = p.toFixed(2);
+
+        plotTitle.innerText = `Binomial Distribution Simulation (n = ${n}, p = ${p.toFixed(2)}, N = ${N.toLocaleString()})`;
+
+        const data = new Int32Array(N);
+        for (let i = 0; i < N; i++) data[i] = sampleBinomial(n, p);
+        currentSamples = data;
+
+        const s = calcStats(data);
+        updateStatsDisplay(n * p, s.mean, n * p * (1 - p), s.variance, s.std, s.skew, s.kurt);
+        renderDiscretePlot(canvas, data, 0, n, (k) => binomialPMF(k, n, p), '#10b981', '#047857', 'Successes (k)');
+
+      } else if (currentTab === 'poisson') {
+        const lambda = parseFloat(poissLamInput.value);
+        poissLamVal.innerText = lambda.toFixed(1);
+
+        plotTitle.innerText = `Poisson Distribution Simulation (λ = ${lambda.toFixed(1)}, N = ${N.toLocaleString()})`;
+
+        const data = new Int32Array(N);
+        let maxObs = 0;
+        for (let i = 0; i < N; i++) {
+          const val = samplePoisson(lambda);
+          data[i] = val;
+          if (val > maxObs) maxObs = val;
+        }
+        currentSamples = data;
+
+        const s = calcStats(data);
+        updateStatsDisplay(lambda, s.mean, lambda, s.variance, s.std, s.skew, s.kurt);
+
+        const maxK = Math.max(maxObs, Math.ceil(lambda + 4 * Math.sqrt(lambda)));
+        renderDiscretePlot(canvas, data, 0, maxK, (k) => poissonPMF(k, lambda), '#8b5cf6', '#6d28d9', 'Events (k)');
+      } else if (currentTab === 'compare') {
+        renderComparisonView();
+      } else if (currentTab === 'dataset') {
+        processAndRenderDataset();
+      }
+    }
+
+    function updateStatsDisplay(tMean, eMean, tVar, eVar, std, skew, kurt) {
+      document.getElementById('statTheoMean').innerText = tMean.toFixed(4);
+      const meanErr = Math.abs(eMean - tMean) / (Math.abs(tMean) || 1.0) * 100;
+      document.getElementById('statEmpMean').innerHTML = `${eMean.toFixed(4)} <span class="text-[10px] text-slate-400">(${meanErr.toFixed(2)}% err)</span>`;
+
+      document.getElementById('statTheoVar').innerText = tVar.toFixed(4);
+      const varErr = Math.abs(eVar - tVar) / (Math.abs(tVar) || 1.0) * 100;
+      document.getElementById('statEmpVar').innerHTML = `${eVar.toFixed(4)} <span class="text-[10px] text-slate-400">(${varErr.toFixed(2)}% err)</span>`;
+
+      document.getElementById('statEmpStd').innerText = std.toFixed(4);
+      document.getElementById('statSkewKurt').innerText = `S:${skew.toFixed(2)} | K:${kurt.toFixed(2)}`;
+    }
+
+    // --- Normal Canvas Plotter ---
+    function renderNormalPlot(c, data, mu, sigma, numBins) {
+      const { width, height, context: g } = setupCanvas(c);
+      g.clearRect(0, 0, width, height);
+
+      const margin = { top: 30, right: 30, bottom: 45, left: 60 };
+      const plotW = width - margin.left - margin.right;
+      const plotH = height - margin.top - margin.bottom;
+
+      const minX = mu - 4 * sigma;
+      const maxX = mu + 4 * sigma;
+      const binWidth = (maxX - minX) / numBins;
+
+      const binCounts = new Array(numBins).fill(0);
+      for (let i = 0; i < data.length; i++) {
+        const val = data[i];
+        if (val >= minX && val < maxX) {
+          const idx = Math.floor((val - minX) / binWidth);
+          if (idx >= 0 && idx < numBins) binCounts[idx]++;
+        }
+      }
+
+      const densities = binCounts.map(cnt => cnt / (data.length * binWidth));
+      const maxDensity = Math.max(...densities, normalPDF(mu, mu, sigma) * 1.15);
+
+      const xMap = (val) => margin.left + ((val - minX) / (maxX - minX)) * plotW;
+      const yMap = (val) => margin.top + plotH - (val / maxDensity) * plotH;
+
+      drawAxes(g, margin, plotW, plotH, minX, maxX, 0, maxDensity, 'Value (x)', 'Probability Density');
+
+      currentBins = [];
+      for (let i = 0; i < numBins; i++) {
+        const xStart = minX + i * binWidth;
+        const xEnd = xStart + binWidth;
+        const px = xMap(xStart);
+        const pw = xMap(xEnd) - px;
+        const py = yMap(densities[i]);
+        const ph = (margin.top + plotH) - py;
+
+        g.fillStyle = 'rgba(59, 130, 246, 0.55)';
+        g.strokeStyle = '#2563eb';
+        g.lineWidth = 1;
+        g.fillRect(px, py, pw, ph);
+        g.strokeRect(px, py, pw, ph);
+
+        currentBins.push({
+          x: px, y: py, w: pw, h: ph,
+          label: `[${xStart.toFixed(2)}, ${xEnd.toFixed(2)}]`,
+          count: binCounts[i],
+          density: densities[i].toFixed(4)
+        });
+      }
+
+      g.beginPath();
+      g.strokeStyle = '#dc2626';
+      g.lineWidth = 2.5;
+      const steps = 300;
+      for (let i = 0; i <= steps; i++) {
+        const xVal = minX + (i / steps) * (maxX - minX);
+        const yVal = normalPDF(xVal, mu, sigma);
+        const px = xMap(xVal);
+        const py = yMap(yVal);
+        if (i === 0) g.moveTo(px, py); else g.lineTo(px, py);
+      }
+      g.stroke();
+
+      drawLegend(g, margin.left + plotW - 190, margin.top + 15, [
+        { label: 'Sample Histogram', color: 'rgba(59, 130, 246, 0.65)', type: 'box' },
+        { label: 'Theoretical PDF', color: '#dc2626', type: 'line' }
+      ]);
+    }
+
+    // --- Discrete Plotter ---
+    function renderDiscretePlot(c, data, minK, maxK, theoFn, barColor, strokeColor, xLabel) {
+      const { width, height, context: g } = setupCanvas(c);
+      g.clearRect(0, 0, width, height);
+
+      const margin = { top: 30, right: 30, bottom: 45, left: 60 };
+      const plotW = width - margin.left - margin.right;
+      const plotH = height - margin.top - margin.bottom;
+
+      const totalK = maxK - minK + 1;
+      const counts = new Array(totalK).fill(0);
+      for (let i = 0; i < data.length; i++) {
+        const val = data[i];
+        if (val >= minK && val <= maxK) counts[val - minK]++;
+      }
+
+      const empProbs = counts.map(c => c / data.length);
+      const theoProbs = [];
+      for (let k = minK; k <= maxK; k++) theoProbs.push(theoFn(k));
+
+      const maxProb = Math.max(...empProbs, ...theoProbs) * 1.15 || 0.1;
+
+      const xMap = (k) => margin.left + ((k - minK + 0.5) / totalK) * plotW;
+      const yMap = (val) => margin.top + plotH - (val / maxProb) * plotH;
+
+      drawAxes(g, margin, plotW, plotH, minK, maxK, 0, maxProb, xLabel, 'Probability P(X = k)', true);
+
+      const slotWidth = plotW / totalK;
+      const barW = Math.max(2, Math.min(22, slotWidth * 0.38));
+
+      currentBins = [];
+      for (let i = 0; i < totalK; i++) {
+        const k = minK + i;
+        const centerX = margin.left + (i + 0.5) * slotWidth;
+
+        const empPy = yMap(empProbs[i]);
+        const empPh = (margin.top + plotH) - empPy;
+        g.fillStyle = barColor;
+        g.fillRect(centerX - barW, empPy, barW, empPh);
+
+        const theoPy = yMap(theoProbs[i]);
+        const theoPh = (margin.top + plotH) - theoPy;
+        g.fillStyle = '#f59e0b';
+        g.fillRect(centerX, theoPy, barW, theoPh);
+
+        currentBins.push({
+          x: centerX - barW, y: Math.min(empPy, theoPy), w: barW * 2, h: Math.max(empPh, theoPh),
+          label: `k = ${k}`,
+          count: counts[i],
+          empiricalProb: empProbs[i].toFixed(4),
+          theoProb: theoProbs[i].toFixed(4)
+        });
+      }
+
+      drawLegend(g, margin.left + plotW - 190, margin.top + 15, [
+        { label: 'Sample Frequency', color: barColor, type: 'box' },
+        { label: 'Theoretical PMF', color: '#f59e0b', type: 'box' }
+      ]);
+    }
+
+    function drawAxes(g, m, w, h, minX, maxX, minY, maxY, xLabel, yLabel, isDiscrete = false) {
+      g.strokeStyle = '#cbd5e1';
+      g.lineWidth = 1;
+      g.fillStyle = '#64748b';
+      g.font = '11px monospace';
+
+      const yTicks = 5;
+      for (let i = 0; i <= yTicks; i++) {
+        const val = minY + (i / yTicks) * (maxY - minY);
+        const py = m.top + h - (i / yTicks) * h;
+        g.beginPath(); g.moveTo(m.left, py); g.lineTo(m.left + w, py); g.stroke();
+        g.textAlign = 'right'; g.textBaseline = 'middle';
+        g.fillText(val.toFixed(3), m.left - 8, py);
+      }
+
+      const xTicks = isDiscrete ? Math.min(15, maxX - minX) : 8;
+      for (let i = 0; i <= xTicks; i++) {
+        const ratio = i / xTicks;
+        const val = minX + ratio * (maxX - minX);
+        const px = m.left + ratio * w;
+        g.textAlign = 'center'; g.textBaseline = 'top';
+        g.fillText(isDiscrete ? Math.round(val) : val.toFixed(1), px, m.top + h + 8);
+      }
+
+      g.font = 'bold 12px sans-serif';
+      g.fillStyle = '#1e293b';
+      g.textAlign = 'center';
+      g.fillText(xLabel, m.left + w / 2, m.top + h + 30);
+
+      g.save();
+      g.translate(18, m.top + h / 2);
+      g.rotate(-Math.PI / 2);
+      g.fillText(yLabel, 0, 0);
+      g.restore();
+    }
+
+    function drawLegend(g, x, y, items) {
+      g.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      g.strokeStyle = '#e2e8f0';
+      g.lineWidth = 1;
+      g.fillRect(x, y, 180, items.length * 20 + 8);
+      g.strokeRect(x, y, 180, items.length * 20 + 8);
+
+      items.forEach((item, idx) => {
+        const iy = y + 14 + idx * 20;
+        g.fillStyle = item.color;
+        if (item.type === 'box') {
+          g.fillRect(x + 10, iy - 7, 12, 12);
+        } else {
+          g.strokeStyle = item.color;
+          g.lineWidth = 2.5;
+          g.beginPath();
+          g.moveTo(x + 10, iy - 1);
+          g.lineTo(x + 22, iy - 1);
+          g.stroke();
+        }
+        g.font = '11px sans-serif';
+        g.fillStyle = '#334155';
+        g.textAlign = 'left';
+        g.textBaseline = 'middle';
+        g.fillText(item.label, x + 28, iy - 1);
+      });
+    }
+
+    // Comparison View
+    function renderComparisonView() {
+      const N = 5000;
+      const normD = new Float64Array(N);
+      for (let i = 0; i < N; i++) normD[i] = sampleNormal(0, 1);
+      renderNormalPlot(document.getElementById('canvasCompareNorm'), normD, 0, 1, 30);
+
+      const binomD = new Int32Array(N);
+      for (let i = 0; i < N; i++) binomD[i] = sampleBinomial(20, 0.5);
+      renderDiscretePlot(document.getElementById('canvasCompareBinom'), binomD, 0, 20, (k) => binomialPMF(k, 20, 0.5), '#10b981', '#047857', 'k');
+
+      const poissD = new Int32Array(N);
+      for (let i = 0; i < N; i++) poissD[i] = samplePoisson(4);
+      renderDiscretePlot(document.getElementById('canvasComparePoiss'), poissD, 0, 12, (k) => poissonPMF(k, 4), '#8b5cf6', '#6d28d9', 'k');
+    }
+
+    // ==================== DATASET PREDICTION ENGINE ====================
+    
+    function autoPredictDistribution(data, stats) {
+      // Check if all integers
+      const isInteger = data.every(v => Math.floor(v) === v);
+      const isNonNegative = data.every(v => v >= 0);
+      const varToMean = stats.variance / (stats.mean || 1);
+
+      let bestModel = "normal";
+      let title = "";
+      let rationale = "";
+
+      if (isInteger && isNonNegative && stats.max <= 100 && varToMean < 1.0) {
+        // Underdispersed counts -> likely Binomial
+        bestModel = "binomial";
+        const estimatedN = Math.max(stats.max, Math.round(stats.mean * 1.5));
+        const estimatedP = stats.mean / estimatedN;
+        title = `Predicted Best Fit: Binomial (n ≈ ${estimatedN}, p ≈ ${estimatedP.toFixed(2)})`;
+        rationale = `Data consists of bounded integer success counts with variance less than mean (Var/Mean = ${varToMean.toFixed(2)}).`;
+      } else if (isInteger && isNonNegative && Math.abs(varToMean - 1.0) < 0.6) {
+        // Poisson equidispersion (Var ≈ Mean)
+        bestModel = "poisson";
+        title = `Predicted Best Fit: Poisson (λ ≈ ${stats.mean.toFixed(2)})`;
+        rationale = `Data consists of non-negative event counts with variance close to the mean (Var/Mean = ${varToMean.toFixed(2)} ≈ 1.0).`;
+      } else {
+        // Continuous or general bell curve -> Normal
+        bestModel = "normal";
+        title = `Predicted Best Fit: Normal (μ̂ = ${stats.mean.toFixed(2)}, σ̂ = ${stats.std.toFixed(2)})`;
+        rationale = `Data spans continuous values exhibiting bell-shaped dispersion around the central mean.`;
+      }
+
+      return { bestModel, title, rationale };
+    }
+
+    function processAndRenderDataset() {
+      if (!activeDataset || activeDataset.length === 0) return;
+
+      const s = calcStats(activeDataset);
+      dsCount.innerText = s.count.toLocaleString();
+      dsMean.innerText = s.mean.toFixed(3);
+      dsVar.innerText = s.variance.toFixed(3);
+      dsStd.innerText = s.std.toFixed(3);
+      dsRange.innerText = `[${s.min.toFixed(1)}, ${s.max.toFixed(1)}]`;
+
+      // Update data pills preview
+      dataPills.innerHTML = activeDataset.slice(0, 30).map(v => 
+        `<span class="bg-slate-100 text-slate-700 font-mono px-2 py-0.5 rounded border border-slate-200">${typeof v === 'number' && Math.floor(v) !== v ? v.toFixed(2) : v}</span>`
+      ).join('') + (activeDataset.length > 30 ? `<span class="text-slate-400 self-center text-[10px]">+${activeDataset.length - 30} more</span>` : '');
+
+      // Fit parameters based on activeFitModel
+      let logLikelihood = 0;
+      let aic = 0;
+
+      if (activeFitModel === "normal") {
+        const mu = s.mean;
+        const sigma = Math.max(0.001, s.std);
+        activeFitParams = { mu, sigma };
+        fittedParamsText.innerHTML = `μ̂ = <strong>${mu.toFixed(3)}</strong>, σ̂ = <strong>${sigma.toFixed(3)}</strong>`;
+        
+        // Log-Likelihood: sum(ln(pdf(x)))
+        for (let x of activeDataset) {
+          const p = Math.max(1e-12, normalPDF(x, mu, sigma));
+          logLikelihood += Math.log(p);
+        }
+        aic = 2 * 2 - 2 * logLikelihood; // 2 params: mu, sigma
+
+      } else if (activeFitModel === "binomial") {
+        const n = Math.max(Math.ceil(s.max), 1);
+        const p = Math.min(0.999, Math.max(0.001, s.mean / n));
+        activeFitParams = { n, p };
+        fittedParamsText.innerHTML = `n̂ = <strong>${n}</strong> trials, p̂ = <strong>${p.toFixed(3)}</strong>`;
+
+        for (let x of activeDataset) {
+          const k = Math.round(x);
+          const prob = Math.max(1e-12, binomialPMF(k, n, p));
+          logLikelihood += Math.log(prob);
+        }
+        aic = 2 * 2 - 2 * logLikelihood; // 2 params: n, p
+
+      } else if (activeFitModel === "poisson") {
+        const lambda = Math.max(0.001, s.mean);
+        activeFitParams = { lambda };
+        fittedParamsText.innerHTML = `λ̂ = <strong>${lambda.toFixed(3)}</strong>`;
+
+        for (let x of activeDataset) {
+          const k = Math.round(x);
+          const prob = Math.max(1e-12, poissonPMF(k, lambda));
+          logLikelihood += Math.log(prob);
+        }
+        aic = 2 * 1 - 2 * logLikelihood; // 1 param: lambda
+      }
+
+      goodnessOfFitText.innerText = `Log-Likelihood: ${logLikelihood.toFixed(1)} | AIC: ${aic.toFixed(1)}`;
+
+      // Update Prediction Probability Calculator
+      updateProbabilityQuery();
+
+      // Render the Combined Dataset & Model Graph
+      renderDatasetPlot();
+    }
+
+    function updateProbabilityQuery() {
+      const qVal = parseFloat(predictInputX.value);
+      if (isNaN(qVal)) return;
+
+      if (activeFitModel === "normal") {
+        const { mu, sigma } = activeFitParams;
+        const dens = normalPDF(qVal, mu, sigma);
+        const cumul = normalCDF(qVal, mu, sigma);
+        predPointProb.innerText = dens.toFixed(4) + " (density)";
+        predCumulProb.innerText = (cumul * 100).toFixed(2) + "%";
+        predSurvProb.innerText = ((1 - cumul) * 100).toFixed(2) + "%";
+
+      } else if (activeFitModel === "binomial") {
+        const { n, p } = activeFitParams;
+        const k = Math.round(qVal);
+        const point = binomialPMF(k, n, p);
+        let cumul = 0;
+        for (let i = 0; i <= k; i++) cumul += binomialPMF(i, n, p);
+        predPointProb.innerText = point.toFixed(4);
+        predCumulProb.innerText = (cumul * 100).toFixed(2) + "%";
+        predSurvProb.innerText = (Math.max(0, 1 - cumul) * 100).toFixed(2) + "%";
+
+      } else if (activeFitModel === "poisson") {
+        const { lambda } = activeFitParams;
+        const k = Math.round(qVal);
+        const point = poissonPMF(k, lambda);
+        let cumul = 0;
+        for (let i = 0; i <= k; i++) cumul += poissonPMF(i, lambda);
+        predPointProb.innerText = point.toFixed(4);
+        predCumulProb.innerText = (cumul * 100).toFixed(2) + "%";
+        predSurvProb.innerText = (Math.max(0, 1 - cumul) * 100).toFixed(2) + "%";
+      }
+    }
+
+    // --- RENDER DATASET PLOT WITH OVERLAYS ---
+    function renderDatasetPlot() {
+      const { width, height, context: g } = setupCanvas(dsCanvas);
+      g.clearRect(0, 0, width, height);
+
+      const margin = { top: 30, right: 30, bottom: 45, left: 60 };
+      const plotW = width - margin.left - margin.right;
+      const plotH = height - margin.top - margin.bottom;
+
+      const s = calcStats(activeDataset);
+      const isDiscrete = activeFitModel !== 'normal';
+      const qVal = parseFloat(predictInputX.value);
+      const showResim = toggleResimOverlay.checked;
+
+      // Handle Re-simulation if checked
+      if (showResim) {
+        activeResimData = [];
+        const N = activeDataset.length;
+        if (activeFitModel === 'normal') {
+          for (let i = 0; i < N; i++) activeResimData.push(sampleNormal(activeFitParams.mu, activeFitParams.sigma));
+        } else if (activeFitModel === 'binomial') {
+          for (let i = 0; i < N; i++) activeResimData.push(sampleBinomial(activeFitParams.n, activeFitParams.p));
+        } else if (activeFitModel === 'poisson') {
+          for (let i = 0; i < N; i++) activeResimData.push(samplePoisson(activeFitParams.lambda));
+        }
+      } else {
+        activeResimData = null;
+      }
+
+      datasetBins = [];
+
+      if (!isDiscrete) {
+        // Continuous (Normal Model)
+        const numBins = 30;
+        const minX = Math.min(s.min, activeFitParams.mu - 3.8 * activeFitParams.sigma);
+        const maxX = Math.max(s.max, activeFitParams.mu + 3.8 * activeFitParams.sigma);
+        const binW = (maxX - minX) / numBins;
+
+        const counts = new Array(numBins).fill(0);
+        for (let v of activeDataset) {
+          if (v >= minX && v < maxX) {
+            counts[Math.floor((v - minX) / binW)]++;
+          }
+        }
+        const densities = counts.map(c => c / (activeDataset.length * binW));
+
+        // Resim densities if enabled
+        let resimDensities = null;
+        if (showResim && activeResimData) {
+          const rCounts = new Array(numBins).fill(0);
+          for (let v of activeResimData) {
+            if (v >= minX && v < maxX) rCounts[Math.floor((v - minX) / binW)]++;
+          }
+          resimDensities = rCounts.map(c => c / (activeResimData.length * binW));
+        }
+
+        const maxDensity = Math.max(
+          ...densities,
+          normalPDF(activeFitParams.mu, activeFitParams.mu, activeFitParams.sigma) * 1.15,
+          resimDensities ? Math.max(...resimDensities) : 0
+        );
+
+        const xMap = (v) => margin.left + ((v - minX) / (maxX - minX)) * plotW;
+        const yMap = (v) => margin.top + plotH - (v / maxDensity) * plotH;
+
+        drawAxes(g, margin, plotW, plotH, minX, maxX, 0, maxDensity, 'Dataset Value (X)', 'Probability Density');
+
+        // Draw Actual Dataset Histogram
+        for (let i = 0; i < numBins; i++) {
+          const x0 = minX + i * binW;
+          const px = xMap(x0);
+          const pw = xMap(x0 + binW) - px;
+          const py = yMap(densities[i]);
+          const ph = (margin.top + plotH) - py;
+
+          g.fillStyle = 'rgba(59, 130, 246, 0.55)';
+          g.strokeStyle = '#2563eb';
+          g.lineWidth = 1;
+          g.fillRect(px, py, pw, ph);
+          g.strokeRect(px, py, pw, ph);
+
+          datasetBins.push({
+            x: px, y: py, w: pw, h: ph,
+            label: `[${x0.toFixed(1)}, ${(x0 + binW).toFixed(1)}]`,
+            count: counts[i],
+            density: densities[i].toFixed(4)
+          });
+        }
+
+        // Draw Resimulated Histogram Outline (if toggled)
+        if (showResim && resimDensities) {
+          for (let i = 0; i < numBins; i++) {
+            const x0 = minX + i * binW;
+            const px = xMap(x0);
+            const pw = xMap(x0 + binW) - px;
+            const py = yMap(resimDensities[i]);
+            const ph = (margin.top + plotH) - py;
+
+            g.strokeStyle = '#f59e0b';
+            g.lineWidth = 2;
+            g.strokeRect(px + 2, py, pw - 4, ph);
+          }
+        }
+
+        // Draw Fitted Continuous Theoretical Curve
+        g.beginPath();
+        g.strokeStyle = '#dc2626';
+        g.lineWidth = 2.5;
+        for (let i = 0; i <= 300; i++) {
+          const vx = minX + (i / 300) * (maxX - minX);
+          const vy = normalPDF(vx, activeFitParams.mu, activeFitParams.sigma);
+          const px = xMap(vx);
+          const py = yMap(vy);
+          if (i === 0) g.moveTo(px, py); else g.lineTo(px, py);
+        }
+        g.stroke();
+
+        // Draw Prediction query marker
+        if (!isNaN(qVal) && qVal >= minX && qVal <= maxX) {
+          const qPx = xMap(qVal);
+          g.beginPath();
+          g.strokeStyle = '#059669';
+          g.lineWidth = 2;
+          g.setLineDash([4, 4]);
+          g.moveTo(qPx, margin.top);
+          g.lineTo(qPx, margin.top + plotH);
+          g.stroke();
+          g.setLineDash([]);
+
+          g.fillStyle = '#059669';
+          g.beginPath();
+          g.arc(qPx, yMap(normalPDF(qVal, activeFitParams.mu, activeFitParams.sigma)), 5, 0, Math.PI * 2);
+          g.fill();
+        }
+
+      } else {
+        // Discrete (Binomial or Poisson Model)
+        let minK = Math.floor(s.min);
+        let maxK = Math.ceil(s.max);
+        let theoFn = null;
+
+        if (activeFitModel === 'binomial') {
+          maxK = Math.max(maxK, activeFitParams.n);
+          theoFn = (k) => binomialPMF(k, activeFitParams.n, activeFitParams.p);
+        } else {
+          maxK = Math.max(maxK, Math.ceil(activeFitParams.lambda + 3.5 * Math.sqrt(activeFitParams.lambda)));
+          theoFn = (k) => poissonPMF(k, activeFitParams.lambda);
+        }
+
+        const totalK = maxK - minK + 1;
+        const counts = new Array(totalK).fill(0);
+        for (let v of activeDataset) {
+          const k = Math.round(v);
+          if (k >= minK && k <= maxK) counts[k - minK]++;
+        }
+        const empProbs = counts.map(c => c / activeDataset.length);
+        const theoProbs = Array.from({ length: totalK }, (_, i) => theoFn(minK + i));
+
+        const maxProb = Math.max(...empProbs, ...theoProbs) * 1.15 || 0.1;
+        const yMap = (v) => margin.top + plotH - (v / maxProb) * plotH;
+
+        drawAxes(g, margin, plotW, plotH, minK, maxK, 0, maxProb, 'Count (k)', 'Probability P(X = k)', true);
+
+        const slotW = plotW / totalK;
+        const barW = Math.max(3, Math.min(22, slotW * 0.35));
+
+        for (let i = 0; i < totalK; i++) {
+          const k = minK + i;
+          const cx = margin.left + (i + 0.5) * slotW;
+
+          // Empirical Bar (Left)
+          const ePy = yMap(empProbs[i]);
+          const ePh = (margin.top + plotH) - ePy;
+          g.fillStyle = 'rgba(59, 130, 246, 0.7)';
+          g.fillRect(cx - barW, ePy, barW, ePh);
+
+          // Theoretical Bar (Right)
+          const tPy = yMap(theoProbs[i]);
+          const tPh = (margin.top + plotH) - tPy;
+          g.fillStyle = '#dc2626';
+          g.fillRect(cx, tPy, barW, tPh);
+
+          datasetBins.push({
+            x: cx - barW, y: Math.min(ePy, tPy), w: barW * 2, h: Math.max(ePh, tPh),
+            label: `k = ${k}`,
+            count: counts[i],
+            empiricalProb: empProbs[i].toFixed(4),
+            theoProb: theoProbs[i].toFixed(4)
+          });
+        }
+
+        // Draw Query Marker
+        if (!isNaN(qVal) && qVal >= minK && qVal <= maxK) {
+          const idx = Math.round(qVal) - minK;
+          const cx = margin.left + (idx + 0.5) * slotW;
+          g.beginPath();
+          g.strokeStyle = '#059669';
+          g.lineWidth = 2;
+          g.setLineDash([4, 4]);
+          g.moveTo(cx, margin.top);
+          g.lineTo(cx, margin.top + plotH);
+          g.stroke();
+          g.setLineDash([]);
+        }
+      }
+
+      // Legend
+      const legendItems = [
+        { label: 'Actual Dataset', color: 'rgba(59, 130, 246, 0.7)', type: 'box' },
+        { label: 'Predicted Model', color: '#dc2626', type: isDiscrete ? 'box' : 'line' }
+      ];
+      if (showResim) legendItems.push({ label: 'Re-simulated Data', color: '#f59e0b', type: 'box' });
+      drawLegend(g, margin.left + plotW - 190, margin.top + 15, legendItems);
+    }
+
+    // ==================== EVENT HANDLERS & INITIALIZATION ====================
+
+    // Tab switching
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach(b => {
+          b.className = 'tab-btn px-4 py-2.5 rounded-lg text-sm font-semibold transition text-slate-600 hover:bg-slate-200';
+        });
+        btn.className = 'tab-btn px-4 py-2.5 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow-sm';
+
+        currentTab = btn.dataset.tab;
+        
+        singleView.classList.toggle('hidden', currentTab === 'compare' || currentTab === 'dataset');
+        compareView.classList.toggle('hidden', currentTab !== 'compare');
+        datasetView.classList.toggle('hidden', currentTab !== 'dataset');
+
+        if (currentTab === 'compare') {
+          renderComparisonView();
+        } else if (currentTab === 'dataset') {
+          processAndRenderDataset();
+        } else {
+          normalControls.classList.toggle('hidden', currentTab !== 'normal');
+          binomialControls.classList.toggle('hidden', currentTab !== 'binomial');
+          poissonControls.classList.toggle('hidden', currentTab !== 'poisson');
+          runSimulation();
+        }
+      });
+    });
+
+    // Parameter sliders listener
+    [sampleSizeInput, normMuInput, normSigmaInput, normBinsInput, binomNInput, binomPInput, poissLamInput].forEach(inp => {
+      inp.addEventListener('input', runSimulation);
+    });
+
+    document.getElementById('reSimulateBtn').addEventListener('click', () => {
+      if (currentTab === 'dataset') {
+        processAndRenderDataset();
+      } else {
+        runSimulation();
+      }
+    });
+
+    // Preset selector listener
+    presetSelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      activeDatasetName = val;
+      activeDataset = [...PRESETS[val]];
+      colPickerContainer.classList.add('hidden');
+
+      // Auto select matching default model or auto-predict
+      const pred = autoPredictDistribution(activeDataset, calcStats(activeDataset));
+      activeFitModel = pred.bestModel;
+      updateFitModelTabsUI();
+      insightTitle.innerText = pred.title;
+      insightText.innerText = pred.rationale;
+      
+      predictInputX.value = activeFitModel === 'normal' ? '75' : (activeFitModel === 'binomial' ? '13' : '6');
+      processAndRenderDataset();
+    });
+
+    // CSV File Upload Reader
+    csvFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const text = evt.target.result;
+        const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+        if (lines.length < 2) return;
+
+        // Check if first line contains header
+        const firstLineCells = lines[0].split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+        const isHeader = isNaN(parseFloat(firstLineCells[0]));
+
+        let columns = [];
+        let colNames = [];
+
+        if (isHeader) {
+          colNames = firstLineCells;
+          columns = colNames.map(() => []);
+          for (let i = 1; i < lines.length; i++) {
+            const row = lines[i].split(',').map(c => parseFloat(c.trim()));
+            row.forEach((val, cIdx) => {
+              if (!isNaN(val) && columns[cIdx]) columns[cIdx].push(val);
+            });
+          }
+        } else {
+          colNames = firstLineCells.map((_, i) => `Column_${i + 1}`);
+          columns = colNames.map(() => []);
+          for (let i = 0; i < lines.length; i++) {
+            const row = lines[i].split(',').map(c => parseFloat(c.trim()));
+            row.forEach((val, cIdx) => {
+              if (!isNaN(val) && columns[cIdx]) columns[cIdx].push(val);
+            });
+          }
+        }
+
+        // Populate column select
+        colSelect.innerHTML = colNames.map((name, idx) => `<option value="${idx}">${name} (${columns[idx].length} rows)</option>`).join('');
+        colPickerContainer.classList.remove('hidden');
+
+        // Set active data to first column with data
+        const validIdx = columns.findIndex(col => col.length > 0);
+        if (validIdx !== -1) {
+          colSelect.value = validIdx;
+          activeDataset = columns[validIdx];
+          
+          // Auto predict for this dataset
+          const pred = autoPredictDistribution(activeDataset, calcStats(activeDataset));
+          activeFitModel = pred.bestModel;
+          updateFitModelTabsUI();
+          insightTitle.innerText = pred.title;
+          insightText.innerText = pred.rationale;
+          predictInputX.value = Math.round(calcStats(activeDataset).mean);
+          processAndRenderDataset();
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    // Column Select change
+    colSelect.addEventListener('change', (e) => {
+      const idx = parseInt(e.target.value, 10);
+      // Re-trigger column update logic
+      const file = csvFileInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const lines = evt.target.result.split(/\r?\n/).filter(line => line.trim().length > 0);
+          const firstLineCells = lines[0].split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+          const isHeader = isNaN(parseFloat(firstLineCells[0]));
+          const start = isHeader ? 1 : 0;
+          const colData = [];
+          for (let i = start; i < lines.length; i++) {
+            const row = lines[i].split(',').map(c => parseFloat(c.trim()));
+            if (!isNaN(row[idx])) colData.push(row[idx]);
+          }
+          activeDataset = colData;
+          const pred = autoPredictDistribution(activeDataset, calcStats(activeDataset));
+          activeFitModel = pred.bestModel;
+          updateFitModelTabsUI();
+          insightTitle.innerText = pred.title;
+          insightText.innerText = pred.rationale;
+          predictInputX.value = Math.round(calcStats(activeDataset).mean);
+          processAndRenderDataset();
+        };
+        reader.readAsText(file);
+      }
+    });
+
+    // Auto Predict Button
+    autoPredictBtn.addEventListener('click', () => {
+      const pred = autoPredictDistribution(activeDataset, calcStats(activeDataset));
+      activeFitModel = pred.bestModel;
+      updateFitModelTabsUI();
+      insightTitle.innerText = pred.title;
+      insightText.innerText = pred.rationale;
+      processAndRenderDataset();
+    });
+
+    // Fit model tabs
+    fitModelBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeFitModel = btn.dataset.fit;
+        updateFitModelTabsUI();
+        processAndRenderDataset();
+      });
+    });
+
+    function updateFitModelTabsUI() {
+      fitModelBtns.forEach(b => {
+        if (b.dataset.fit === activeFitModel) {
+          b.className = 'fit-model-btn py-1.5 rounded-md bg-white text-blue-700 shadow-xs font-bold';
+        } else {
+          b.className = 'fit-model-btn py-1.5 rounded-md text-slate-600 hover:text-slate-900';
+        }
+      });
+    }
+
+    // Prediction Input X listener
+    predictInputX.addEventListener('input', () => {
+      updateProbabilityQuery();
+      renderDatasetPlot();
+    });
+
+    toggleResimOverlay.addEventListener('change', renderDatasetPlot);
+
+    // Toggle Preview
+    toggleDataPreview.addEventListener('click', () => {
+      const isHidden = dataPreviewContent.classList.toggle('hidden');
+      previewToggleIcon.innerText = isHidden ? '▼' : '▲';
+    });
+
+    // Tooltip listener for main canvas
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      let hit = null;
+      for (const bin of currentBins) {
+        if (mx >= bin.x && mx <= bin.x + bin.w && my >= bin.y && my <= bin.y + bin.h) {
+          hit = bin; break;
+        }
+      }
+
+      if (hit) {
+        tooltip.style.left = `${mx + 12}px`;
+        tooltip.style.top = `${my - 20}px`;
+        tooltip.classList.remove('hidden');
+        if (hit.empiricalProb !== undefined) {
+          tooltip.innerHTML = `<strong>${hit.label}</strong><br>Count: ${hit.count}<br>Empirical: ${hit.empiricalProb}<br>Theo: ${hit.theoProb}`;
+        } else {
+          tooltip.innerHTML = `<strong>Range: ${hit.label}</strong><br>Count: ${hit.count}<br>Density: ${hit.density}`;
+        }
+      } else {
+        tooltip.classList.add('hidden');
+      }
+    });
+    canvas.addEventListener('mouseleave', () => tooltip.classList.add('hidden'));
+
+    // Tooltip listener for dataset canvas
+    dsCanvas.addEventListener('mousemove', (e) => {
+      const rect = dsCanvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      let hit = null;
+      for (const bin of datasetBins) {
+        if (mx >= bin.x && mx <= bin.x + bin.w && my >= bin.y && my <= bin.y + bin.h) {
+          hit = bin; break;
+        }
+      }
+
+      if (hit) {
+        dsTooltip.style.left = `${mx + 12}px`;
+        dsTooltip.style.top = `${my - 20}px`;
+        dsTooltip.classList.remove('hidden');
+        if (hit.empiricalProb !== undefined) {
+          dsTooltip.innerHTML = `<strong>${hit.label}</strong><br>Actual Count: ${hit.count}<br>Actual Freq: ${hit.empiricalProb}<br>Predicted P: ${hit.theoProb}`;
+        } else {
+          dsTooltip.innerHTML = `<strong>Range: ${hit.label}</strong><br>Actual Count: ${hit.count}<br>Actual Density: ${hit.density}`;
+        }
+      } else {
+        dsTooltip.classList.add('hidden');
+      }
+    });
+    dsCanvas.addEventListener('mouseleave', () => dsTooltip.classList.add('hidden'));
+
+    // Export CSV
+    document.getElementById('downloadCsvBtn').addEventListener('click', () => {
+      const dataToExport = currentTab === 'dataset' ? activeDataset : currentSamples;
+      if (!dataToExport || dataToExport.length === 0) return;
+      let csv = "Index,Value\n";
+      for (let i = 0; i < dataToExport.length; i++) {
+        csv += `${i + 1},${dataToExport[i]}\n`;
+      }
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentTab}_distribution_data.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Export PNG
+    document.getElementById('downloadImgBtn').addEventListener('click', () => {
+      const targetCanvas = currentTab === 'dataset' ? dsCanvas : canvas;
+      const a = document.createElement('a');
+      a.href = targetCanvas.toDataURL('image/png');
+      a.download = `${currentTab}_distribution_plot.png`;
+      a.click();
+    });
+
+    // Initialize Default Dataset
+    activeDataset = [...PRESETS.exam];
+    runSimulation();
+    window.addEventListener('resize', () => {
+      if (currentTab === 'dataset') renderDatasetPlot();
+      else runSimulation();
+    });
+  </script>
+</body>
+</html>
