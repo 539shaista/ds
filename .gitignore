@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Distribution plot outputs
+normal_distribution.png
+binomial_distribution.png
+poisson_distribution.png
+dataset_prediction_plot.png
+*.png
+
+# Operating system files
+.DS_Store
+Thumbs.db
