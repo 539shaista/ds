@@ -28,17 +28,48 @@ open index.html
 ---
 
 ### 2. 📊 Streamlit Interactive Web Dashboard (`app.py`)
-- Python-based dashboard using Streamlit, NumPy, SciPy, and Matplotlib.
-- **Features**:
-  - Sidebar distribution selector.
-  - Parameter controls ($\mu, \sigma, n, p, \lambda$) and sample size $N$ slider.
-  - Metric delta cards showing convergence error percentage.
-  - Data preview tables and built-in CSV download buttons.
+- Complete statistical and simulation platform built with Streamlit, NumPy, SciPy, and Matplotlib.
+- **Two Separated Application Modes**:
+  - **Mode 1: Distribution Simulation**:
+    - Interactive parameter controls for Normal ($\mu, \sigma$), Binomial ($n, p$), and Poisson ($\lambda$).
+    - Sample size ($N$) and random seed controls.
+    - Side-by-side comparative simulation overview for all 3 distributions.
+    - Real-time theoretical vs empirical metrics with signed convergence error delta.
+  - **Mode 2: Analyze an Uploaded Dataset & Automatic Fitting**:
+    - Robust CSV validation (missing values, malformed files, non-numeric filtering, infinite checks).
+    - Compact 6-metric dataset quality summary.
+    - 16 descriptive statistics cards (Mean, Median, Mode, IQR, Skewness, Kurtosis, Percentiles).
+    - Mathematical compatibility verification (continuous vs discrete count constraints).
+    - **Lilliefors test with parametric bootstrap** for Normal distribution (accounts for estimated parameters).
+    - **Chi-square goodness-of-fit test with Cochran category pooling** (expected count $\ge 5$) for Poisson and Binomial.
+    - Log-likelihood, AIC, and BIC information criteria.
+    - 2x2 responsive diagnostic visual grid: PDF/PMF fit, Empirical CDF (ECDF), Normal Q-Q plot, Box plot with IQR outlier boundaries.
+    - Interactive observation probability query tool ($f(x)$, $P(X \le x)$, $P(X > x)$).
+    - Cleaned observation CSV export and comprehensive statistical analysis report download.
 
 **How to run**:
 ```bash
-pip install -r requirements.txt
 streamlit run app.py
+```
+
+---
+
+### 3. 🧪 Automated 10-Point Test Suite (`test_suite.py`)
+- Automated verification script checking 10 key statistical scenarios:
+  1. Normal-distributed continuous data
+  2. Poisson-generated count data
+  3. Binomial-generated count data
+  4. CSV with missing values (NaN / empty cells)
+  5. CSV with non-numeric and infinite values
+  6. Constant-valued column (zero variance degenerate case)
+  7. Small sample size warning ($N < 15$)
+  8. Malformed and empty CSV error handling
+  9. Incompatible / bimodal datasets (preventing false winners)
+  10. Mode 1 simulation function integrity
+
+**How to run**:
+```bash
+python3 test_suite.py
 ```
 
 ---
@@ -58,7 +89,11 @@ python3 gui_tkinter.py
 ---
 
 ### 4. 📈 Standalone Simulation Script (`simulation.py`)
-- A clean, well-commented script that runs simulations for each distribution using built-in functions and generates publication-ready plots saved directly to disk.
+- A clean, well-commented script that runs simulations for each distribution using built-in functions and generates publication-ready plots saved directly to disk:
+  - `normal_distribution.png`: Simulated histogram vs theoretical PDF
+  - `binomial_distribution.png`: Simulated relative frequencies vs theoretical PMF
+  - `poisson_distribution.png`: Simulated relative frequencies vs theoretical PMF
+  - `dataset_prediction_plot.png`: Dataset distribution fitting and Monte Carlo re-simulation
 
 **How to run**:
 ```bash
